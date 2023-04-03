@@ -1,18 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toggleMenu } from "../utlis/AppSlice";
 import { YOUTUBE_SEARCH_API } from "../utlis/Constants";
+import { cacheResults } from "../utlis/SearchSlice";
 
 const Head = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions , setShowSuggestions]= useState(false)
+  
+
+  const searchCache = useSelector((store)=>store.search)
+
 
   useEffect(() => {
     // API CALL
     // console.log(searchQuery);
 
-    const timer = setTimeout(() => getSearchSuggestion(), 200);
+    const timer = setTimeout(() => {
+      if(searchCache[searchQuery]){
+        setSuggestions(searchCache[searchQuery]);
+      }
+      else{
+        getSearchSuggestion()
+      }
+      getSearchSuggestion()
+    }, 200);
 
     return () => {
       clearTimeout(timer);
@@ -31,6 +44,9 @@ const Head = () => {
     setSuggestions(json[1]);
   };
   const dispatch = useDispatch();
+  dispatch(cacheResults({
+    // [searchQuery]:JSON[1],
+  }))
   const toggleMenuHandler = () => {
     dispatch(toggleMenu());
   };
@@ -66,7 +82,7 @@ const Head = () => {
             🔍
           </button>
         </div>
-        {suggestions && (
+        {showSuggestions && (
            <div className='fixed bg-white py-2 px-2 w-[30rem] shadow-lg- rounded-lg border-gray-100'>
            <ul>
              {suggestions.map((s) => (
